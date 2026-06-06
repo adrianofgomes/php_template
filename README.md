@@ -50,6 +50,11 @@ Este projeto é um template estruturado para o desenvolvimento de APIs REST em P
 3. **Configurar Banco de Dados:**
    Execute o conteúdo de `database.sql` no seu servidor MySQL.
 
+4. **Executar Localmente:**
+   ```bash
+   ./run_local.sh 8080
+   ```
+
 ## 🔐 Autenticação e Fluxo de Usuários
 
 A API possui um **AuthMiddleware** que protege as rotas:
@@ -67,27 +72,42 @@ A aplicação utiliza o PHPUnit para testes automatizados. Para rodar a suíte c
 
 ## 📦 Deploy (HostGator)
 
-Existe um script automatizado para preparar a estrutura de pastas necessária para o deploy na HostGator, separando o código sensível da pasta pública.
+Existem scripts automatizados para preparar a estrutura de pastas e realizar o upload para a HostGator, separando o código sensível da pasta pública.
 
-1. **Gerar pacote de deploy:**
-   ```bash
-   chmod +x generate_deploy_package.sh
-   ./generate_deploy_package.sh
-   ```
+### 1. Modos de Deploy
+Os scripts suportam dois modos:
+- **Light (Padrão):** Ignora a pasta `vendor/`. Ideal para atualizações rápidas de código quando as dependências não mudaram.
+- **Full (`--full`):** Inclui a pasta `vendor/`. Necessário no primeiro deploy ou quando novas dependências forem instaladas via Composer.
 
-2. **Estrutura gerada em `/deploy_package`:**
-   - `php_template_core`: Deve ser movido para fora da pasta pública (ex: `/home1/usuario/php_template`).
-   - `php_template_public`: Conteúdo para a pasta pública (ex: `/home1/usuario/public_html/php_template`).
+### 2. Gerar pacote de deploy:
+```bash
+chmod +x generate_deploy_package.sh
 
-3. **Publicar via FTP:**
-   Configure as variáveis `FTP_HOST`, `FTP_USER` e `FTP_PASS` no seu `.env` e execute:
-   ```bash
-   chmod +x publish_to_hostgator.sh
-   ./publish_to_hostgator.sh
-   ```
+# Modo Light (padrão)
+./generate_deploy_package.sh
 
-4. **Configuração Final:**
-   Após o upload, edite o arquivo `.env` na pasta core do servidor com as credenciais de produção.
+# Modo Full (com vendor)
+./generate_deploy_package.sh --full
+```
+
+### 3. Estrutura gerada em `/deploy_package`:
+- `php_template_core`: Deve ser movido para fora da pasta pública (ex: `/home1/usuario/php_template`).
+- `php_template_public`: Conteúdo para a pasta pública (ex: `/home1/usuario/public_html/php_template`).
+
+### 4. Publicar via FTP:
+Configure as variáveis `FTP_HOST`, `FTP_USER` e `FTP_PASS` no seu `.env` e execute:
+```bash
+chmod +x publish_to_hostgator.sh
+
+# Deploy Light (rápido)
+./publish_to_hostgator.sh
+
+# Deploy Full (completo)
+./publish_to_hostgator.sh --full
+```
+
+### 5. Configuração Final:
+Após o upload, edite o arquivo `.env` na pasta core do servidor com as credenciais de produção.
 
 ## 📍 Endpoints Atuais
 

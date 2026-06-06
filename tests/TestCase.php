@@ -17,9 +17,10 @@ use Slim\Psr7\Uri;
 abstract class TestCase extends PHPUnitTestCase
 {
     /**
+     * @param array $definitions
      * @return App
      */
-    protected function getAppInstance(): App
+    protected function getAppInstance(array $definitions = []): App
     {
         $containerBuilder = new ContainerBuilder();
 
@@ -35,10 +36,20 @@ abstract class TestCase extends PHPUnitTestCase
         $repositories = require __DIR__ . '/../app/repositories.php';
         $repositories($containerBuilder);
 
+        if (!empty($definitions)) {
+            $containerBuilder->addDefinitions($definitions);
+        }
+
         $container = $containerBuilder->build();
 
         AppFactory::setContainer($container);
         $app = AppFactory::create();
+
+        // Add Routing Middleware
+        $app->addRoutingMiddleware();
+
+        // Add Error Middleware
+        $app->addErrorMiddleware(true, false, false);
 
         // Register routes
         $routes = require __DIR__ . '/../app/routes.php';

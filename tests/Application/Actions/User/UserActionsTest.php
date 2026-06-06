@@ -5,49 +5,57 @@ declare(strict_types=1);
 namespace App\Tests\Application\Actions\User;
 
 use App\Tests\TestCase;
+use App\Domain\User\UserRepository;
+use App\Domain\User\User;
 
 class UserActionsTest extends TestCase
 {
     public function testIsAdminActionUnauthenticated()
     {
-        $app = $this->getAppInstance();
+        $userRepository = $this->createMock(UserRepository::class);
+        $app = $this->getAppInstance([
+            UserRepository::class => $userRepository,
+        ]);
+        
         $request = $this->createRequest('GET', '/users/me/is-admin');
         
-        try {
-            $response = $app->handle($request);
-            $this->assertEquals(401, $response->getStatusCode());
-        } catch (\Slim\Exception\HttpUnauthorizedException $e) {
-            $this->assertEquals('Authorization header missing.', $e->getMessage());
-        }
+        $response = $app->handle($request);
+        $this->assertEquals(401, $response->getStatusCode());
     }
 
     public function testIsAdminActionWithMockToken()
     {
-        $app = $this->getAppInstance();
+        $user = new User(1, '123456789', 'admin@example.com', 'Admin User', true, 'active');
+        
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository->method('findUserByGoogleId')->willReturn($user);
+
+        $app = $this->getAppInstance([
+            UserRepository::class => $userRepository,
+        ]);
         
         $request = $this->createRequest('GET', '/users/123456789/is-admin');
         $request = $request->withHeader('Authorization', 'Bearer test-token');
         
-        try {
-            $response = $app->handle($request);
-            $this->assertContains($response->getStatusCode(), [200, 403]);
-        } catch (\Slim\Exception\HttpForbiddenException $e) {
-            $this->assertStringContainsString('Cadastro em validação', $e->getMessage());
-        }
+        $response = $app->handle($request);
+        $this->assertEquals(200, $response->getStatusCode());
     }
 
     public function testAdminRouteAccessDeniedForNormalUser()
     {
-        $app = $this->getAppInstance();
+        $user = new User(2, '987654321', 'newuser@example.com', 'New User', false, 'active');
+
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository->method('findUserByGoogleId')->willReturn($user);
+
+        $app = $this->getAppInstance([
+            UserRepository::class => $userRepository,
+        ]);
         
         $request = $this->createRequest('GET', '/users/admin/pending');
         $request = $request->withHeader('Authorization', 'Bearer new-user-token');
         
-        try {
-            $response = $app->handle($request);
-            $this->assertEquals(403, $response->getStatusCode());
-        } catch (\Slim\Exception\HttpForbiddenException $e) {
-            $this->assertStringContainsString('Cadastro em validação', $e->getMessage());
-        }
+        $response = $app->handle($request);
+        $this->assertEquals(403, $response->getStatusCode());
     }
 }

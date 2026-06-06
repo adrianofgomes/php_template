@@ -9,8 +9,8 @@ use GuzzleHttp\Exception\ClientException;
 
 // --- CONFIGURATION ---
 // Change this to the URL where your Slim app is running
-// If you are using PHP's built-in server, it's usually http://localhost:8080
-$baseUrl = 'http://localhost:8080'; 
+// Remote URL on HostGator
+$baseUrl = 'https://pogger.com.br/php_template'; 
 
 $client = new Client([
     'base_uri' => $baseUrl,

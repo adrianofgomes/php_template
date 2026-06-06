@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Application\Actions\StatusAction;
 use App\Application\Actions\User\IsAdminAction;
 use App\Application\Actions\User\ListPendingUsersAction;
 use App\Application\Actions\User\ApproveUserAction;
@@ -13,10 +14,23 @@ use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
 
 return function (App $app) {
+    // Detectar o Base Path automaticamente para suportar subpastas (HostGator)
+    // Desativado em CLI (testes) para evitar caminhos incorretos
+    if (PHP_SAPI !== 'cli') {
+        $scriptName = $_SERVER['SCRIPT_NAME'];
+        $basePath = str_replace('\\', '/', dirname($scriptName));
+        if ($basePath !== '/' && $basePath !== '.') {
+            $app->setBasePath($basePath);
+        }
+    }
+
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
         // CORS Pre-Flight OPTIONS Request Handler
         return $response;
     });
+
+    // Rota de teste pública (Health Check)
+    $app->get('/status', StatusAction::class);
 
     $app->get('/', function (Request $request, Response $response) {
         $response->getBody()->write('Hello world!');
