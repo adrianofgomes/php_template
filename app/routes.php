@@ -24,6 +24,15 @@ return function (App $app) {
         }
     }
 
+    // Middleware de Headers de Segurança
+    $app->add(function (Request $request, $handler) {
+        $response = $handler->handle($request);
+        return $response
+            ->withHeader('X-Content-Type-Options', 'nosniff')
+            ->withHeader('X-Frame-Options', 'DENY')
+            ->withHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+    });
+
     $app->options('/{routes:.*}', function (Request $request, Response $response) {
         // CORS Pre-Flight OPTIONS Request Handler
         return $response;
